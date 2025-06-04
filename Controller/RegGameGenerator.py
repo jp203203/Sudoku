@@ -13,7 +13,7 @@ class RegGameGenerator(GameGenerator):
     # implementation of backtracking algorithm for finding valid sudoku solutions
     @override
     def _backtrack_fill(self, x, y):
-        if y >= 9:
+        if y >= 8 and x >= 8:
             return True
 
         figure = randint(0, 8)  # first figure chosen randomly to make the puzzles less repetitive
@@ -24,16 +24,16 @@ class RegGameGenerator(GameGenerator):
         next_x = (x + 1) % 9
         next_y = y + 1 if next_x == 0 and y < 8 else y
 
-        cell_empty = (self._grid[y][x] == 0)  # check if cell is empty
+        cell_empty = (self._full_grid[y][x] == 0)  # check if cell is empty
 
         while cell_empty and figure < fig_limit:  # if cell isn't empty, this loop can be skipped
             goto_next_figure = False
-            self._grid[y][x] = (figure % 9) + 1
+            self._full_grid[y][x] = (figure % 9) + 1
 
             # check if valid in subgrid
             for i in range((y // 3) * 3, ((y // 3) * 3) + 3):
                 for j in range((x // 3) * 3, ((x // 3) * 3) + 3):
-                    if not (i == y and j == x) and self._grid[i][j] == self._grid[y][x]:
+                    if not (i == y and j == x) and self._full_grid[i][j] == self._full_grid[y][x]:
                         goto_next_figure = True
                     if goto_next_figure:  # break out of inner loop if figure is invalid at this point
                         break
@@ -47,7 +47,7 @@ class RegGameGenerator(GameGenerator):
 
             # check if valid in row
             for i in range(9):
-                if x != i and self._grid[y][x] == self._grid[y][i]:
+                if x != i and self._full_grid[y][x] == self._full_grid[y][i]:
                     goto_next_figure = True
                     break
 
@@ -58,7 +58,7 @@ class RegGameGenerator(GameGenerator):
 
             # check if valid in column
             for i in range(9):
-                if y != i and self._grid[y][x] == self._grid[i][x]:
+                if y != i and self._full_grid[y][x] == self._full_grid[i][x]:
                     goto_next_figure = True
                     break
 
@@ -89,15 +89,15 @@ class RegGameGenerator(GameGenerator):
 
         # "empty" the cell if none of the solutions are valid (and cell was empty)
         if not valid_found and cell_empty:
-            self._grid[y][x] = 0
+            self._full_grid[y][x] = 0
 
         return valid_found
 
     # generate full grid using backtracking algorithm
     @override
     def _generate_full_grid(self):
-        self._grid = [[0] * 9 for _ in range(9)]  # creating an empty grid (filled with zeroes)
-        self._grid[randint(0, 8)][randint(0, 8)] = randint(1, 9)  # starting with a random element
+        self._full_grid = [[0] * 9 for _ in range(9)]  # creating an empty grid (filled with zeroes)
+        self._full_grid[randint(0, 8)][randint(0, 8)] = randint(1, 9)  # starting with a random element
 
         self._backtrack_fill(0, 0)
 
@@ -112,7 +112,7 @@ class RegGameGenerator(GameGenerator):
         filled_by_col = [9] * 9
         filled_cells = 81
 
-        solver = RegGridSolver()  # make new instance of GridSolver
+        self._solver = RegGridSolver()  # make new instance of GridSolver
 
         # remove cells as long as the grid is solvable for chosen difficulty
         solvable = True
@@ -138,10 +138,11 @@ class RegGameGenerator(GameGenerator):
             filled_by_row[row] -= 1
             filled_by_col[col] -= 1
 
-            solvable = solver.try_solving(self._solvable_grid_copy, filled_cells, difficulty)
+            solvable = self._solver.try_solving(self._solvable_grid_copy, filled_cells, difficulty)
             if not solvable:
                 # write the value back to the cell if grid isn't solvable anymore
                 self._solvable_grid[col][row] = prev_value
+                filled_cells += 1
 
         # return filled cells left after emptying the grid, to check whether the threshold is met
         return filled_cells

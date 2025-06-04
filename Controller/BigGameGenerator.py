@@ -13,7 +13,7 @@ class BigGameGenerator(GameGenerator):
     # implementation of backtracking algorithm for finding valid sudoku solutions
     @override
     def _backtrack_fill(self, x, y):
-        if y >= 16:
+        if y >= 15 and x >= 15:
             return True
 
         figure = randint(0, 15)  # first figure chosen randomly to make the puzzles less repetitive
@@ -24,16 +24,16 @@ class BigGameGenerator(GameGenerator):
         next_x = (x + 1) % 16
         next_y = y + 1 if next_x == 0 and y < 15 else y
 
-        cell_empty = (self._grid[y][x] == 0)  # check if cell is empty
+        cell_empty = (self._full_grid[y][x] == 0)  # check if cell is empty
 
         while cell_empty and figure < fig_limit:  # if cell isn't empty, this loop can be skipped
             goto_next_figure = False
-            self._grid[y][x] = (figure % 16) + 1
+            self._full_grid[y][x] = (figure % 16) + 1
 
             # check if valid in subgrid
             for i in range((y // 4) * 4, ((y // 4) * 4) + 4):
                 for j in range((x // 4) * 4, ((x // 4) * 4) + 4):
-                    if not (i == y and j == x) and self._grid[i][j] == self._grid[y][x]:
+                    if not (i == y and j == x) and self._full_grid[i][j] == self._full_grid[y][x]:
                         goto_next_figure = True
                     if goto_next_figure:  # break out of inner loop if figure is invalid at this point
                         break
@@ -47,7 +47,7 @@ class BigGameGenerator(GameGenerator):
 
             # check if valid in row
             for i in range(16):
-                if x != i and self._grid[y][x] == self._grid[y][i]:
+                if x != i and self._full_grid[y][x] == self._full_grid[y][i]:
                     goto_next_figure = True
                     break
 
@@ -58,7 +58,7 @@ class BigGameGenerator(GameGenerator):
 
             # check if valid in column
             for i in range(16):
-                if y != i and self._grid[y][x] == self._grid[i][x]:
+                if y != i and self._full_grid[y][x] == self._full_grid[i][x]:
                     goto_next_figure = True
                     break
 
@@ -89,15 +89,15 @@ class BigGameGenerator(GameGenerator):
 
         # "empty" the cell if none of the solutions are valid (and cell was empty)
         if not valid_found and cell_empty:
-            self._grid[y][x] = 0
+            self._full_grid[y][x] = 0
 
         return valid_found
 
     # generate full grid using backtracking algorithm
     @override
     def _generate_full_grid(self):
-        self._grid = [[0] * 16 for _ in range(16)]  # creating an empty grid (filled with zeroes)
-        self._grid[randint(0, 15)][randint(0, 15)] = randint(1, 16)  # starting with a random element
+        self._full_grid = [[0] * 16 for _ in range(16)]  # creating an empty grid (filled with zeroes)
+        self._full_grid[randint(0, 15)][randint(0, 15)] = randint(1, 16)  # starting with a random element
 
         self._backtrack_fill(0, 0)
 
@@ -112,7 +112,7 @@ class BigGameGenerator(GameGenerator):
         filled_by_col = [16] * 16
         filled_cells = 256
 
-        solver = BigGridSolver()  # make new instance of GridSolver
+        self._solver = BigGridSolver()  # make new instance of GridSolver
 
         # remove cells as long as the grid is solvable for chosen difficulty
         solvable = True
@@ -134,7 +134,7 @@ class BigGameGenerator(GameGenerator):
             filled_by_row[row] -= 1
             filled_by_col[col] -= 1
 
-            solvable = solver.try_solving(self._solvable_grid_copy, filled_cells)
+            solvable = self._solver.try_solving(self._solvable_grid_copy, filled_cells)
             if not solvable:
                 # write the value back to the cell if grid isn't solvable anymore
                 self._solvable_grid[col][row] = prev_value

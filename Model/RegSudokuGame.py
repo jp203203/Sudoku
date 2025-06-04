@@ -1,6 +1,6 @@
 from typing import override
-from SudokuGame import SudokuGame
-from Difficulty import Difficulty
+from Model.SudokuGame import SudokuGame
+from Model.Difficulty import Difficulty
 
 
 class RegSudokuGame(SudokuGame):
@@ -21,4 +21,4 @@ class RegSudokuGame(SudokuGame):
 
     @override
     def set_pencil_mark(self, x, y, val):
-        self._pencil_marks[y][x][val] = not self.__pencil_marks[y][x][val]
+        self._pencil_marks[y][x][val] = not self._pencil_marks[y][x][val]

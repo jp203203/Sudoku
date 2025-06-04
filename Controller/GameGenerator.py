@@ -6,6 +6,7 @@ class GameGenerator(ABC):
         self._full_grid = None
         self._solvable_grid = None
         self._solvable_grid_copy = None
+        self._solver = None
 
     # backtracking algorithm for creating valid sudoku solutions
     @abstractmethod

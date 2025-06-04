@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from SudokuBoard import SudokuBoard
+from Model.SudokuBoard import SudokuBoard
 
 
 class SudokuGame(ABC):

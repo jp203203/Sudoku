@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class Difficulty(Enum):
-    EASY = 45
-    MEDIUM = 40
+    EASY = 55
+    MEDIUM = 45
     HARD = 35
     BIG = 257

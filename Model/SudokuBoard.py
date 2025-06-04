@@ -9,3 +9,9 @@ class SudokuBoard:
 
     def get_solvable_grid(self):
         return self._solvable_board
+
+    def print_board(self):
+        for row in self._solvable_board:
+            for cell in row:
+                print(cell, end=" ")
+            print("\n", end="")

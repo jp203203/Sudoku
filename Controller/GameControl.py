@@ -16,7 +16,9 @@ class GameControl(IGameInteraction):
         self._game_generator = None
 
     def main(self):
+        # create and display the menu (difficulty choice) view
         self._view = MenuView(self)
+        self._view.start()
 
     def _play_game(self, difficulty):
         if difficulty == Difficulty.BIG:
@@ -31,10 +33,19 @@ class GameControl(IGameInteraction):
         else:
             self._view = SudokuView(self)
 
+        # insert all cells which are already filled
+        for y in range(9):
+            for x in range(9):
+                cell_val = self._game.get_board().get_solvable_grid()[y][x]
+                if cell_val != 0:
+                    self._view.update_cell(x, y, cell_val, True)
+
+        # display the game view
+        self._view.start()
+
+    # game interaction interface methods
     @override
     def choose_difficulty(self, difficulty):
-        print("Selected difficulty", difficulty.name, sep=" ", end="\n")
-
         self._play_game(difficulty)
 
     @override
@@ -42,8 +53,14 @@ class GameControl(IGameInteraction):
         pass
 
     @override
-    def fill_cell(self, x, y, value):
-        pass
+    def insert_cell(self, x, y, value):
+        correct = (self._game.get_board().get_solved_grid()[y][x] == value)
+        self._view.update_cell(x, y, value, correct)
+
+    @override
+    def get_hint(self, x, y):
+        cell_val = self._game.get_board().get_solved_grid()[y][x]
+        self._view.update_cell(x, y, cell_val, True)
 
 
 if __name__ == '__main__':

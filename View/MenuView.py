@@ -47,8 +47,6 @@ class MenuView(View):
         big_btn.grid(row=3, column=0, pady=(10, 0))
         btn_frame.place(relx=0.5, rely=0.2, anchor=tk.N)
 
-        self._root.mainloop()
-
     def _pass_difficulty(self, difficulty):
         self._root.destroy()
         self._game_interaction.choose_difficulty(difficulty)

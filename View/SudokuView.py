@@ -1,27 +1,36 @@
 from typing import override
 from tkinter import *
+from tkinter.font import Font
 from pynput.keyboard import Key, Listener
-from View.View import View
 import threading
+from View.View import View
+from View.IGameViewUpdate import IGameViewUpdate
 from Controller.IGameInteraction import IGameInteraction
 from Model.Difficulty import Difficulty
 
 
-class SudokuView(View):
+class SudokuView(View, IGameViewUpdate):
     def __init__(self, game_interaction):
         self._grid = None
+        self._hint_img = None
+        self._hint_btn = None
+        self._mark_img = None
+        self._mark_btn = None
+        self._mistakes_lbl = None
+
         self._cell_selected_ids = [[0 for _ in range(9)] for _ in range(9)]
         self._cell_highlighted_ids = [[0 for _ in range(9)] for _ in range(9)]
         self._cell_hitbox_ids = [[0 for _ in range(9)] for _ in range(9)]
         self._cell_value_ids = [[0 for _ in range(9)] for _ in range(9)]
         self._selected_cell = (-1, -1)
+
         self._marks_on = False
+
+        super().__init__(game_interaction)
 
         # start a thread for listening for keyboard events
         listener_thread = threading.Thread(target=self._start_listener, daemon=True)
         listener_thread.start()
-
-        super().__init__(game_interaction)
 
     @override
     def _create(self):
@@ -30,12 +39,14 @@ class SudokuView(View):
         self._root.resizable(False, False)
         self._root.title("Sudoku 9x9")
         self._root.geometry('551x600')
+        self._root.rowconfigure((0, 1), weight=1)
+        self._root.columnconfigure((0, 1, 2), weight=1)
 
         cell_size = 50
 
         # create sudoku grid as a canvas
         self._grid = Canvas(self._root, width=453, height=453)
-        self._grid.place(x=49, y=30)
+        self._grid.grid(row=0, column=0, columnspan=3)
 
         # create colored squares for selected and highlighted cells, and hide them
         # additionally create click event listeners as transparent hitboxes
@@ -68,7 +79,18 @@ class SudokuView(View):
             self._grid.create_line(i * cell_size + 3, 0, i * cell_size + 3, 454, width=line_width)
             self._grid.create_line(0, i * cell_size + 3, 454, i * cell_size + 3, width=line_width)
 
-        self._root.mainloop()
+        # add buttons and a mistakes label
+        self._hint_img = PhotoImage(file='../assets/bulb.png')
+        self._hint_btn = Button(self._root, image=self._hint_img, font=Font(size=30), fg='#2b7eb5',
+                                command=lambda: self._get_hint())
+        self._hint_btn.grid(row=1, column=0)
+
+        self._mistakes_lbl = Label(self._root, text="mistakes left: ", font=Font(size=17))
+        self._mistakes_lbl.grid(row=1, column=1)
+
+        self._mark_img = PhotoImage(file='../assets/pencil.png')
+        self._mark_btn = Button(self._root, image=self._mark_img, font=Font(size=30), fg='#2b7eb5')
+        self._mark_btn.grid(row=1, column=2)
 
     # highlight selected cell and all cells in the same row, column and sub-grid
     def _select_cells(self, x, y):
@@ -103,7 +125,6 @@ class SudokuView(View):
 
     def _start_listener(self):
         # create a listener object
-        print("Listener thread started...")
         with Listener(on_press=self._cell_input) as listener:
             listener.join()
 
@@ -113,18 +134,18 @@ class SudokuView(View):
         # ignore all other keys
         if self._selected_cell[0] != -1 and self._selected_cell[1] != -1:
             if key == Key.backspace:
-                self._insert_number(0, self._selected_cell[0], self._selected_cell[1])
+                self._write_number(0, self._selected_cell[0], self._selected_cell[1], None)
             try:
                 if 97 <= key.vk <= 105:
-                    self._insert_number(key.vk - 96, self._selected_cell[0], self._selected_cell[1])
+                    self._game_interaction.insert_cell(self._selected_cell[0], self._selected_cell[1], key.vk - 96)
                 elif 49 <= key.vk <= 57:
-                    self._insert_number(key.vk - 48, self._selected_cell[0], self._selected_cell[1])
+                    self._game_interaction.insert_cell(self._selected_cell[0], self._selected_cell[1], key.vk - 48)
                 else:
                     pass
             except AttributeError:
                 pass
 
-    def _insert_number(self, value, x, y):
+    def _write_number(self, value, x, y, correct):
         # determine the position of the value to be inserted
         cell_size = 50
         cell_x = cell_size * x + 29
@@ -137,17 +158,51 @@ class SudokuView(View):
                 if self._cell_value_ids[y][x] != 0:
                     self._grid.delete(self._cell_value_ids[y][x])
 
+                # choose color depending on input's correctness
+                color = ''
+                if correct:
+                    color = 'black'
+                else:
+                    color = 'red'
+
                 self._cell_value_ids[y][x] = self._grid.create_text(
                     cell_x, cell_y,
                     text=str(value),
                     font=('Helvetica', 24),
-                    fill='black'
+                    fill=color
                 )
-                # move the text below the hitbox, so that it's not covered by the text
-                self._grid.tag_lower(self._cell_value_ids[y][x],
-                                     self._cell_hitbox_ids[y][x])
+
+                if correct:
+                    # if correct, remove the hitbox and reset the selected cell
+                    self._grid.delete(self._cell_hitbox_ids[y][x])
+                    self._selected_cell = (-1, -1)
+                else:
+                    # if not correct, move the text below the hitbox, so that it's not covered by the text
+                    self._grid.tag_lower(self._cell_value_ids[y][x],
+                                         self._cell_hitbox_ids[y][x])
 
             # remove the value from the cell if it's not empty, and the value is 0 (backspace pressed)
             if self._cell_value_ids[y][x] != 0 and value == 0:
                 self._grid.delete(self._cell_value_ids[y][x])
                 self._cell_value_ids[y][x] = 0
+
+    def _get_hint(self):
+        x = self._selected_cell[0]
+        y = self._selected_cell[1]
+        if x != -1 and y != -1:
+            if self._cell_value_ids[y][x] == 0:
+                self._game_interaction.get_hint(x, y)
+            self._hint_btn["state"] = "disabled"
+
+    # game update interface methods
+    @override
+    def update_cell(self, x, y, value, correct):
+        self._write_number(value, x, y, correct)
+
+    @override
+    def update_mistakes(self, mistakes_left):
+        pass
+
+    @override
+    def finish_game(self, won):
+        pass

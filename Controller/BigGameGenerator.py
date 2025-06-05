@@ -148,11 +148,13 @@ class BigGameGenerator(GameGenerator):
         if not isinstance(difficulty, Difficulty):
             raise ValueError("difficulty is not an instance of Difficulty enum")
 
+        filled_cells = 0
+
         eligible = False
         while not eligible:
             eligible = True
             filled_cells = self._generate_solvable_grid(difficulty)
-            if filled_cells > difficulty.value:
+            if filled_cells > difficulty.value[0]:
                 eligible = False
 
-        return BigSudokuGame(self._full_grid, self._solvable_grid)
+        return BigSudokuGame(self._full_grid, self._solvable_grid, filled_cells)

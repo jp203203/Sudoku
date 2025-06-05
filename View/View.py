@@ -10,3 +10,6 @@ class View(ABC):
     @abstractmethod
     def _create(self):
         pass
+
+    def start(self):
+        self._root.mainloop()

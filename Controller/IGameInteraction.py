@@ -3,9 +3,6 @@ from Model.Difficulty import Difficulty
 
 
 class IGameInteraction(ABC):
-    def __init__(self):
-        pass
-
     @abstractmethod
     def choose_difficulty(self, difficulty):
         pass
@@ -15,5 +12,9 @@ class IGameInteraction(ABC):
         pass
 
     @abstractmethod
-    def fill_cell(self, x, y, value):
+    def insert_cell(self, x, y, value):
+        pass
+
+    @abstractmethod
+    def get_hint(self, x, y):
         pass

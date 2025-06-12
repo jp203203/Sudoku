@@ -1,10 +1,16 @@
+from typing import override
 from Model.SudokuGame import SudokuGame
 from Model.Difficulty import Difficulty
 
 
 class RegSudokuGame(SudokuGame):
+    _init_mistakes = 3
+
     def __init__(self, solved_grid, solvable_grid, filled_cells, difficulty):
-        super().__init__(solved_grid, solvable_grid, filled_cells)
+        super().__init__(solved_grid, solvable_grid, filled_cells, difficulty)
         self._difficulty = difficulty
-        self._pencil_marks = [[[False for _ in range(9)] for _ in range(9)] for _ in range(9)]
-        self._mistakes_left = self._difficulty.value[1]
+        self._mistakes_left = RegSudokuGame._init_mistakes
+
+    @override
+    def reset_mistakes(self):
+        self._mistakes_left = RegSudokuGame._init_mistakes

@@ -1,5 +1,6 @@
 from typing import override
-from random import randint
+import random
+import time
 from GameGenerator import GameGenerator
 from BigGridSolver import BigGridSolver
 from Model.Difficulty import Difficulty
@@ -9,14 +10,22 @@ from Model.BigSudokuGame import BigSudokuGame
 class BigGameGenerator(GameGenerator):
     def __init__(self):
         super().__init__()
+        self._calls = None
+        self._needs_restart = False
 
     # implementation of backtracking algorithm for finding valid sudoku solutions
     @override
     def _backtrack_fill(self, x, y):
-        if y >= 15 and x >= 15:
+        # set restart flag to True if the board doesn't generate after 300000 calls
+        if self._calls > 300000:
+            self._needs_restart = True
+            return
+        self._calls += 1
+
+        if y == 16 and x == 0:
             return True
 
-        figure = randint(0, 15)  # first figure chosen randomly to make the puzzles less repetitive
+        figure = random.randint(0, 15)  # first figure chosen randomly to make the puzzles less repetitive
         fig_limit = figure + 16
         valid_found = False
 
@@ -85,7 +94,12 @@ class BigGameGenerator(GameGenerator):
 
         # if cell wasn't empty, check the next cells
         if not cell_empty:
-            valid_found = self._backtrack_fill(next_x, next_y)
+            try:
+                valid_found = self._backtrack_fill(next_x, next_y)
+            except RecursionError:
+                # restart the generation process if maximum recursion depth hit
+                self._needs_restart = True
+                return
 
         # "empty" the cell if none of the solutions are valid (and cell was empty)
         if not valid_found and cell_empty:
@@ -97,7 +111,7 @@ class BigGameGenerator(GameGenerator):
     @override
     def _generate_full_grid(self):
         self._full_grid = [[0] * 16 for _ in range(16)]  # creating an empty grid (filled with zeroes)
-        self._full_grid[randint(0, 15)][randint(0, 15)] = randint(1, 16)  # starting with a random element
+        self._full_grid[random.randint(0, 15)][random.randint(0, 15)] = random.randint(1, 16)  # starting with a random element
 
         self._backtrack_fill(0, 0)
 
@@ -106,6 +120,10 @@ class BigGameGenerator(GameGenerator):
     def _generate_solvable_grid(self, difficulty=None):
         # first, generate full grid
         self._generate_full_grid()
+
+        if self._needs_restart:  # return if restart flag set to True
+            return
+
         self._solvable_grid = [row[:] for row in self._full_grid]  # copy the full grid into solvable grid
 
         filled_by_row = [16] * 16
@@ -118,13 +136,13 @@ class BigGameGenerator(GameGenerator):
         solvable = True
         while solvable:
             # find a random cell to empty
-            row = randint(0, 15)
-            col = randint(0, 15)
+            row = random.randint(0, 15)
+            col = random.randint(0, 15)
 
             # find new cell as long as the chosen one is already empty
             while self._solvable_grid[col][row] == 0:
-                row = randint(0, 15)
-                col = randint(0, 15)
+                row = random.randint(0, 15)
+                col = random.randint(0, 15)
 
             prev_value = self._full_grid[col][row]  # read the cell value in case it needs to be put back into the cell
             self._solvable_grid[col][row] = 0  # empty the cell
@@ -138,6 +156,7 @@ class BigGameGenerator(GameGenerator):
             if not solvable:
                 # write the value back to the cell if grid isn't solvable anymore
                 self._solvable_grid[col][row] = prev_value
+                filled_cells += 1
 
         # return filled cells left after emptying the grid, to check whether the threshold is met
         return filled_cells
@@ -145,16 +164,20 @@ class BigGameGenerator(GameGenerator):
     # creates a new big sudoku game
     @override
     def generate_game(self, difficulty):
-        if not isinstance(difficulty, Difficulty):
-            raise ValueError("difficulty is not an instance of Difficulty enum")
-
+        self._needs_restart = False  # set restart flag to False
         filled_cells = 0
 
         eligible = False
         while not eligible:
             eligible = True
+            self._calls = 0
+            random.seed(time.time())
             filled_cells = self._generate_solvable_grid(difficulty)
-            if filled_cells > difficulty.value[0]:
+
+            if self._needs_restart:  # if restart flag set to True, return None
+                return
+
+            if filled_cells > difficulty.value:
                 eligible = False
 
-        return BigSudokuGame(self._full_grid, self._solvable_grid, filled_cells)
+        return BigSudokuGame(self._full_grid, self._solvable_grid, filled_cells, difficulty)

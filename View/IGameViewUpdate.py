@@ -11,5 +11,5 @@ class IGameViewUpdate(ABC):
         pass
 
     @abstractmethod
-    def finish_game(self, won):
+    def lock_game(self):
         pass

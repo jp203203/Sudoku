@@ -302,7 +302,7 @@ class BigGridSolver(GridSolver):
             # no check of filled cells after using hidden pairs, because no cells were filled
 
         # return True if grid was solved, and False otherwise
-        if filled_cells == 256:
+        if self._filled_cells == 256:
             return True
         else:
             return False

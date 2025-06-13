@@ -1,5 +1,3 @@
-import os
-import sys
 from typing import override
 from tkinter import *
 from tkinter.font import Font

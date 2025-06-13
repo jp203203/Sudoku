@@ -8,7 +8,7 @@ The fourth difficulty is called "big" - it is not a typical 9x9 sudoku game, but
 ## 2. Controls ##
 Select the cells by clicking on them. You can only select the cells which are empty.
 
-Fill the cells on the grid by pressing keys on the keyboard: 1-9 (numpad is fine too) for 9x9 games, and additionally A-G (alphbetically) for 16x16 games. 
+Fill the cells on the grid by pressing keys on the keyboard: 1-9 (numpad is fine too) for 9x9 games, and additionally A-G (alphabetical) for 16x16 games. 
 
 Incorrect guesses are indicated by the red color of the inserted character. To empty the cell, select it (if not already selected) and press backspace key.
 

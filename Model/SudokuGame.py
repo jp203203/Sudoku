@@ -4,6 +4,7 @@ from Model.SudokuBoard import SudokuBoard
 
 class SudokuGame(ABC):
     _init_mistakes = None
+    _size = None
 
     def __init__(self, solved_grid, solvable_grid, filled_cells, difficulty):
         self._board = SudokuBoard(solved_grid, solvable_grid)
@@ -35,4 +36,8 @@ class SudokuGame(ABC):
 
     @abstractmethod
     def reset_mistakes(self):
+        pass
+
+    @abstractmethod
+    def get_size(self):
         pass

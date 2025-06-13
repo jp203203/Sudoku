@@ -5,6 +5,7 @@ from Model.Difficulty import Difficulty
 
 class RegSudokuGame(SudokuGame):
     _init_mistakes = 3
+    _size = 9
 
     def __init__(self, solved_grid, solvable_grid, filled_cells, difficulty):
         super().__init__(solved_grid, solvable_grid, filled_cells, difficulty)
@@ -14,3 +15,7 @@ class RegSudokuGame(SudokuGame):
     @override
     def reset_mistakes(self):
         self._mistakes_left = RegSudokuGame._init_mistakes
+
+    @override
+    def get_size(self):
+        return RegSudokuGame._size

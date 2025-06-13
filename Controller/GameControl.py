@@ -38,7 +38,7 @@ class GameControl(IGameInteraction):
             self._view = self._view_factory.create_view("sudoku")
 
         # insert all cells which are already filled
-        board_size = 16 if self._game.get_difficulty() == Difficulty.BIG else 9
+        board_size = self._game.get_size()
         for y in range(board_size):
             for x in range(board_size):
                 cell_val = self._game.get_board().get_solvable_grid()[y][x]
@@ -85,7 +85,7 @@ class GameControl(IGameInteraction):
             self._game.set_filled_cells(self._game.get_filled_cells() + 1)
 
             # if all cells were filled, lock the game and display the window with appropriate message
-            if self._game.get_filled_cells() == 81:
+            if self._game.get_filled_cells() == self._game.get_size() ** 2:
                 self._view.lock_game()
                 self._display_end_game_view(True)
 
@@ -98,14 +98,14 @@ class GameControl(IGameInteraction):
         self._game.set_filled_cells(self._game.get_filled_cells() + 1)
 
         # if all cells were filled, lock the game and display the window with appropriate message
-        if self._game.get_filled_cells() == 81:
+        if self._game.get_filled_cells() == self._game.get_size() ** 2:
             self._view.lock_game()
             self._display_end_game_view(True)
 
     @override
     def new_game(self):
         # destroy the previous game view's root
-        self._view.get_root().destroy()  # PROGRAM TERMINATES HERE
+        self._view.get_root().destroy()
         # create new menu view
         self._view = self._view_factory.create_view("menu")
         self._view.start()
@@ -127,10 +127,7 @@ class GameControl(IGameInteraction):
 
     @override
     def win(self):
-        if self._game.get_difficulty() == Difficulty.BIG:
-            size = 16
-        else:
-            size = 9
+        size = self._game.get_size()
 
         for i in range(size):
             for j in range(size):

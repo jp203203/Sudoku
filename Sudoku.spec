@@ -3,7 +3,7 @@
 
 a = Analysis(
     ['Controller\\GameControl.py'],
-    pathex=['=.'],
+    pathex=['.'],
     binaries=[],
     datas=[('assets/*', 'assets')],
     hiddenimports=[],

@@ -212,6 +212,7 @@ class SudokuView(View, IGameViewUpdate):
                     action(x, y, value)
             elif event.char.upper() == 'W':
                 self._game_interaction.win()
+
     def _update_marks(self, x, y, value):
         # remove the marks from correct spot
         for i in range(9):

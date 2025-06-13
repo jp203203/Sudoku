@@ -97,7 +97,7 @@ class SudokuView(View, IGameViewUpdate):
             self._grid.create_line(0, i * cell_size + 3, 454, i * cell_size + 3, width=line_width)
 
         # add buttons and a mistakes label
-        self._hint_img = PhotoImage(file='../assets/bulb.png')
+        self._hint_img = PhotoImage(file=self._resource_path('assets/bulb.png'))
         self._hint_btn = Button(self._root, image=self._hint_img, font=Font(size=30), fg='#2b7eb5',
                                 command=self._get_hint)
         self._hint_btn.grid(row=1, column=0)
@@ -105,7 +105,7 @@ class SudokuView(View, IGameViewUpdate):
         self._mistakes_lbl = Label(self._root, text="mistakes left: ", font=Font(size=17))
         self._mistakes_lbl.grid(row=1, column=1)
 
-        self._mark_img = PhotoImage(file='../assets/pencil.png')
+        self._mark_img = PhotoImage(file=self._resource_path('assets/pencil.png'))
         self._mark_btn = Button(self._root, image=self._mark_img, font=Font(size=30), fg='#2b7eb5',
                                 command=self._switch_marks)
         self._mark_btn.grid(row=1, column=2)
@@ -255,6 +255,14 @@ class SudokuView(View, IGameViewUpdate):
             self._mark_btn.config(bg='#828282', activebackground='#828282')
         else:
             self._mark_btn.config(bg=self._root.cget("bg"), activebackground=self._root.cget("bg"))
+
+    def _resource_path(self, relative_path):
+        try:
+            base_path = sys._MEIPASS  # type: ignore[attr-defined]
+        except AttributeError:
+            base_path = os.path.abspath(".")
+
+        return os.path.join(base_path, relative_path)
 
     # game update interface methods
     @override

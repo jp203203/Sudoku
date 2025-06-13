@@ -82,7 +82,7 @@ class BigSudokuView(SudokuView):
             self._grid.create_line(0, i * cell_size + 3, 676, i * cell_size + 3, width=line_width)
 
         # add buttons and a mistakes label
-        self._hint_img = PhotoImage(file='../assets/bulb.png')
+        self._hint_img = PhotoImage(file=self._resource_path('assets/bulb.png'))
         self._hint_btn = Button(self._root, image=self._hint_img, font=Font(size=30), fg='#2b7eb5',
                                 command=self._get_hint)
         self._hint_btn.grid(row=1, column=0)
@@ -90,7 +90,7 @@ class BigSudokuView(SudokuView):
         self._mistakes_lbl = Label(self._root, text="mistakes left: ", font=Font(size=17))
         self._mistakes_lbl.grid(row=1, column=1)
 
-        self._mark_img = PhotoImage(file='../assets/pencil.png')
+        self._mark_img = PhotoImage(file=self._resource_path('assets/pencil.png'))
         self._mark_btn = Button(self._root, image=self._mark_img, font=Font(size=30), fg='#2b7eb5',
                                 command=self._switch_marks)
         self._mark_btn.grid(row=1, column=2)
